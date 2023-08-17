@@ -14,43 +14,47 @@ class LanchoneteDB {
       this.formasDePagamento = ["dinheiro", "debito", "credito"];
     }
   
-    calcularValorDaCompra(itensSelecionados, formaPagamento) {
-      if (!this.formasDePagamento.includes(formaPagamento)) {
+    calcularValorDaCompra(formaDePagamento, itens) {
+      if (!this.formasDePagamento.includes(formaDePagamento)) {
         return "Forma de pagamento inválida!";
       }
   
-      if (itensSelecionados.length === 0) {
+      if (itens.length === 0) {
         return "Não há itens no carrinho de compra!";
       }
   
-      const valorTotal = this.calcularValorTotal(itensSelecionados);
+      const valorTotal = this.calcularValorTotal(itens);
   
-      if (formaPagamento === "dinheiro") {
-        return (valorTotal * 0.95).toFixed(2);
-      } else if (formaPagamento === "credito") {
-        return (valorTotal * 1.03).toFixed(2);
+      if (formaDePagamento === "dinheiro") {
+        return `R$ ${(valorTotal * 0.95).toFixed(2)}`;
+      } else if (formaDePagamento === "credito") {
+        return `R$ ${(valorTotal * 1.03).toFixed(2)}`;
       }
   
-      return valorTotal.toFixed(2);
+      return `R$ ${valorTotal.toFixed(2)}`;
     }
   
-    calcularValorTotal(itensSelecionados) {
+    calcularValorTotal(itens) {
       let valorTotal = 0;
   
       const itensPrincipais = new Set();
       const itensExtras = new Set();
   
-      for (const itemSelecionado of itensSelecionados) {
-        const itemCardapio = this.cardapio.find(item => item.codigo === itemSelecionado);
+      for (const itemInfo of itens) {
+        const [itemCodigo, quantidade] = itemInfo.split(",");
+        const itemCardapio = this.cardapio.find(item => item.codigo === itemCodigo);
+        
         if (!itemCardapio) {
           return "Item inválido!";
         }
   
+        const valorItem = itemCardapio.valor * quantidade;
+        
         if (itemCardapio.descricao.includes("extra")) {
-          itensExtras.add(itemSelecionado);
+          itensExtras.add(itemCodigo);
         } else {
-          itensPrincipais.add(itemSelecionado);
-          valorTotal += itemCardapio.valor;
+          itensPrincipais.add(itemCodigo);
+          valorTotal += valorItem;
         }
       }
   
@@ -67,8 +71,9 @@ class LanchoneteDB {
   
   // Exemplo de uso
   const lanchonete = new LanchoneteDB();
-  const itensSelecionados = ["cafe", "chantily", "suco", "chantilyextra", "combo1"];
   const formaPagamento = "credito";
+  const itens = ["cafe,2", "chantily,1", "suco,1", "cafeextra,1", "combo1,1"];
   
-  const valorCompra = lanchonete.calcularValorDaCompra(itensSelecionados, formaPagamento);
+  const valorCompra = lanchonete.calcularValorDaCompra(formaPagamento, itens);
   console.log(valorCompra);
+  
